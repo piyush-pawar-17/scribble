@@ -1,0 +1,14 @@
+{
+    "manifest_version": 3,
+    "name": "Scribble",
+    "version": "0.1.0",
+    "description": "Extension to take notes in new tab in chrome",
+    "chrome_url_overrides": {
+        "newtab": "index.html"
+    },
+    "permissions": ["storage"],
+    "host_permissions": ["http://*/*", "https://*/*"],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+    }
+}
