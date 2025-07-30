@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { HighlighterIcon } from '@/components';
 import { type Editor } from '@tiptap/react';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+import { HighlighterIcon } from '@/components';
 
 import { isMarkInSchema, isNodeTypeSelected } from '@/lib';
 

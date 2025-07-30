@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { LinkIcon } from '@/components';
 import type { Editor } from '@tiptap/react';
+
+import { LinkIcon } from '@/components';
 
 import { isMarkInSchema, sanitizeUrl } from '@/lib';
 

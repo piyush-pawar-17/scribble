@@ -9,13 +9,8 @@ export function ThemeToggle() {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = () => {
             setIsDarkMode(mediaQuery.matches);
-            const root = document.documentElement;
-            if (mediaQuery.matches) {
-                root.classList.add('dark');
-            } else {
-                root.classList.remove('dark');
-            }
         };
+
         mediaQuery.addEventListener('change', handleChange);
 
         return () => mediaQuery.removeEventListener('change', handleChange);

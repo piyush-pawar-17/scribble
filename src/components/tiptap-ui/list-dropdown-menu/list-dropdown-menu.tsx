@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 
+import { type Editor } from '@tiptap/react';
+
 import {
     Button,
     ButtonGroup,
@@ -14,7 +16,6 @@ import {
     ListButton,
     type ListType
 } from '@/components';
-import { type Editor } from '@tiptap/react';
 
 import { useTiptapEditor } from '@/hooks';
 

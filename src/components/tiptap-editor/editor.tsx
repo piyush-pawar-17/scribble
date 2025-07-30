@@ -1,5 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
 
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { Highlight } from '@tiptap/extension-highlight';
+import { Image } from '@tiptap/extension-image';
+import { TaskItem, TaskList } from '@tiptap/extension-list';
+import { Subscript } from '@tiptap/extension-subscript';
+import { Superscript } from '@tiptap/extension-superscript';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Typography } from '@tiptap/extension-typography';
+import { Selection } from '@tiptap/extensions';
+import { type Content, EditorContent, EditorContext, useEditor } from '@tiptap/react';
+import { StarterKit } from '@tiptap/starter-kit';
+import bash from 'highlight.js/lib/languages/bash';
+import c from 'highlight.js/lib/languages/c';
+import cpp from 'highlight.js/lib/languages/cpp';
+import css from 'highlight.js/lib/languages/css';
+import dockerfile from 'highlight.js/lib/languages/dockerfile';
+import go from 'highlight.js/lib/languages/go';
+import js from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import md from 'highlight.js/lib/languages/markdown';
+import rust from 'highlight.js/lib/languages/rust';
+import sql from 'highlight.js/lib/languages/sql';
+import ts from 'highlight.js/lib/languages/typescript';
+import html from 'highlight.js/lib/languages/xml';
+import { all, createLowlight } from 'lowlight';
+
 import {
     ArrowLeftIcon,
     BlockquoteButton,
@@ -25,31 +51,6 @@ import {
     ToolbarSeparator,
     UndoRedoButton
 } from '@/components';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { Highlight } from '@tiptap/extension-highlight';
-import { Image } from '@tiptap/extension-image';
-import { TaskItem, TaskList } from '@tiptap/extension-list';
-import { Subscript } from '@tiptap/extension-subscript';
-import { Superscript } from '@tiptap/extension-superscript';
-import { TextAlign } from '@tiptap/extension-text-align';
-import { Typography } from '@tiptap/extension-typography';
-import { Selection } from '@tiptap/extensions';
-import { EditorContent, EditorContext, useEditor } from '@tiptap/react';
-import { StarterKit } from '@tiptap/starter-kit';
-import bash from 'highlight.js/lib/languages/bash';
-import c from 'highlight.js/lib/languages/c';
-import cpp from 'highlight.js/lib/languages/cpp';
-import css from 'highlight.js/lib/languages/css';
-import dockerfile from 'highlight.js/lib/languages/dockerfile';
-import go from 'highlight.js/lib/languages/go';
-import js from 'highlight.js/lib/languages/javascript';
-import json from 'highlight.js/lib/languages/json';
-import md from 'highlight.js/lib/languages/markdown';
-import rust from 'highlight.js/lib/languages/rust';
-import sql from 'highlight.js/lib/languages/sql';
-import ts from 'highlight.js/lib/languages/typescript';
-import html from 'highlight.js/lib/languages/xml';
-import { all, createLowlight } from 'lowlight';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -78,7 +79,99 @@ lowlight.register('json', json);
 lowlight.register('sql', sql);
 lowlight.register('rust', rust);
 
-const MainToolbarContent = ({
+export function Editor() {
+    const isMobile = useIsMobile();
+    const [mobileView, setMobileView] = useState<'main' | 'highlighter' | 'link'>('main');
+    const toolbarRef = useRef<HTMLDivElement>(null);
+    const [editorState, setEditorState] = useState<Content>({});
+
+    const editor = useEditor({
+        immediatelyRender: false,
+        shouldRerenderOnTransaction: false,
+        editorProps: {
+            attributes: {
+                autocomplete: 'off',
+                autocorrect: 'off',
+                autocapitalize: 'off',
+                'aria-label': 'Main content area, start typing to enter text.',
+                class: 'editor'
+            }
+        },
+        extensions: [
+            StarterKit.configure({
+                horizontalRule: false,
+                codeBlock: false,
+                link: {
+                    openOnClick: false,
+                    enableClickSelection: true
+                }
+            }),
+            HorizontalRule,
+            TextAlign.configure({ types: ['heading', 'paragraph'] }),
+            TaskList,
+            TaskItem.configure({ nested: true }),
+            Highlight.configure({ multicolor: true }),
+            Image,
+            Typography,
+            Superscript,
+            Subscript,
+            Selection,
+            CodeBlockLowlight.configure({
+                lowlight,
+                languageClassPrefix: 'language-',
+                defaultLanguage: 'plaintext'
+            })
+        ],
+        content: editorState,
+        onCreate: (props) => {
+            setEditorState(props.editor.getJSON());
+            console.log(props.editor.getJSON());
+        },
+        onUpdate: (props) => {
+            console.log(props.editor.getJSON());
+        }
+    });
+
+    useEffect(() => {
+        if (!isMobile && mobileView !== 'main') {
+            setMobileView('main');
+        }
+    }, [isMobile, mobileView]);
+
+    return (
+        <div className="editor-wrapper">
+            <EditorContext.Provider value={{ editor }}>
+                <Toolbar
+                    ref={toolbarRef}
+                    style={{
+                        ...(isMobile
+                            ? {
+                                  bottom: 0
+                              }
+                            : {})
+                    }}
+                >
+                    {mobileView === 'main' ? (
+                        <MainToolbarContent
+                            onHighlighterClick={() => setMobileView('highlighter')}
+                            onLinkClick={() => setMobileView('link')}
+                            isMobile={isMobile}
+                        />
+                    ) : (
+                        <MobileToolbarContent
+                            type={mobileView === 'highlighter' ? 'highlighter' : 'link'}
+                            onBack={() => setMobileView('main')}
+                        />
+                    )}
+                </Toolbar>
+
+                <EditorContent editor={editor} role="presentation" className="editor-content" />
+            </EditorContext.Provider>
+        </div>
+    );
+}
+
+function MainToolbarContent({
     onHighlighterClick,
     onLinkClick,
     isMobile
@@ -86,7 +179,7 @@ const MainToolbarContent = ({
     onHighlighterClick: () => void;
     onLinkClick: () => void;
     isMobile: boolean;
-}) => {
+}) {
     return (
         <>
             <Spacer />
@@ -144,112 +237,25 @@ const MainToolbarContent = ({
             </ToolbarGroup>
         </>
     );
-};
+}
 
-const MobileToolbarContent = ({ type, onBack }: { type: 'highlighter' | 'link'; onBack: () => void }) => (
-    <>
-        <ToolbarGroup>
-            <Button data-style="ghost" onClick={onBack}>
-                <ArrowLeftIcon className="tiptap-button-icon" />
-                {type === 'highlighter' ? (
-                    <HighlighterIcon className="tiptap-button-icon" />
-                ) : (
-                    <LinkIcon className="tiptap-button-icon" />
-                )}
-            </Button>
-        </ToolbarGroup>
-
-        <ToolbarSeparator />
-
-        {type === 'highlighter' ? <ColorHighlightPopoverContent /> : <LinkContent />}
-    </>
-);
-
-export function Editor() {
-    const isMobile = useIsMobile();
-    const [mobileView, setMobileView] = useState<'main' | 'highlighter' | 'link'>('main');
-    const toolbarRef = useRef<HTMLDivElement>(null);
-
-    const editor = useEditor({
-        immediatelyRender: false,
-        shouldRerenderOnTransaction: false,
-        editorProps: {
-            attributes: {
-                autocomplete: 'off',
-                autocorrect: 'off',
-                autocapitalize: 'off',
-                'aria-label': 'Main content area, start typing to enter text.',
-                class: 'editor'
-            }
-        },
-        extensions: [
-            StarterKit.configure({
-                horizontalRule: false,
-                codeBlock: false,
-                link: {
-                    openOnClick: false,
-                    enableClickSelection: true
-                }
-            }),
-            HorizontalRule,
-            TextAlign.configure({ types: ['heading', 'paragraph'] }),
-            TaskList,
-            TaskItem.configure({ nested: true }),
-            Highlight.configure({ multicolor: true }),
-            Image,
-            Typography,
-            Superscript,
-            Subscript,
-            Selection,
-            CodeBlockLowlight.configure({
-                lowlight,
-                languageClassPrefix: 'language-',
-                defaultLanguage: 'plaintext'
-            })
-        ],
-        onCreate: (props) => {
-            console.log(props.editor.getJSON());
-        },
-        onUpdate: (props) => {
-            console.log(props.editor.getJSON());
-        }
-    });
-
-    useEffect(() => {
-        if (!isMobile && mobileView !== 'main') {
-            setMobileView('main');
-        }
-    }, [isMobile, mobileView]);
-
+function MobileToolbarContent({ type, onBack }: { type: 'highlighter' | 'link'; onBack: () => void }) {
     return (
-        <div className="editor-wrapper">
-            <EditorContext.Provider value={{ editor }}>
-                <Toolbar
-                    ref={toolbarRef}
-                    style={{
-                        ...(isMobile
-                            ? {
-                                  bottom: 0
-                              }
-                            : {})
-                    }}
-                >
-                    {mobileView === 'main' ? (
-                        <MainToolbarContent
-                            onHighlighterClick={() => setMobileView('highlighter')}
-                            onLinkClick={() => setMobileView('link')}
-                            isMobile={isMobile}
-                        />
+        <>
+            <ToolbarGroup>
+                <Button data-style="ghost" onClick={onBack}>
+                    <ArrowLeftIcon className="tiptap-button-icon" />
+                    {type === 'highlighter' ? (
+                        <HighlighterIcon className="tiptap-button-icon" />
                     ) : (
-                        <MobileToolbarContent
-                            type={mobileView === 'highlighter' ? 'highlighter' : 'link'}
-                            onBack={() => setMobileView('main')}
-                        />
+                        <LinkIcon className="tiptap-button-icon" />
                     )}
-                </Toolbar>
+                </Button>
+            </ToolbarGroup>
 
-                <EditorContent editor={editor} role="presentation" className="editor-content" />
-            </EditorContext.Provider>
-        </div>
+            <ToolbarSeparator />
+
+            {type === 'highlighter' ? <ColorHighlightPopoverContent /> : <LinkContent />}
+        </>
     );
 }

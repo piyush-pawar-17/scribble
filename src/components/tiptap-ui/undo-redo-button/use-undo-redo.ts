@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { Redo2Icon, Undo2Icon } from '@/components';
 import { type Editor } from '@tiptap/react';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+import { Redo2Icon, Undo2Icon } from '@/components';
 
 import { isNodeTypeSelected } from '@/lib';
 

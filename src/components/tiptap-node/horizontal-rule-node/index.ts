@@ -1,1 +1,1 @@
-export * from './horizontal-rule-node-extension'
+export * from './horizontal-rule-node-extension';

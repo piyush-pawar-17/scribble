@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import type { Editor } from '@tiptap/react';
+
 import {
     ListIcon,
     ListOrderedIcon,
@@ -9,7 +11,6 @@ import {
     isListActive,
     listIcons
 } from '@/components';
-import type { Editor } from '@tiptap/react';
 
 import { isNodeInSchema } from '@/lib';
 

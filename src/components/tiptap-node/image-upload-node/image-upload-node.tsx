@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import type { NodeViewProps } from '@tiptap/react';
 import { NodeViewWrapper } from '@tiptap/react';
 
-import { CloseIcon, Button } from '@/components';
+import { Button, CloseIcon } from '@/components';
 
 import { isValidPosition } from '@/lib';
 

@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { NodeSelection, TextSelection } from '@tiptap/pm/state';
+import { type Editor } from '@tiptap/react';
+import { useHotkeys } from 'react-hotkeys-hook';
+
 import {
     HeadingFiveIcon,
     HeadingFourIcon,
@@ -8,9 +12,6 @@ import {
     HeadingThreeIcon,
     HeadingTwoIcon
 } from '@/components';
-import { NodeSelection, TextSelection } from '@tiptap/pm/state';
-import { type Editor } from '@tiptap/react';
-import { useHotkeys } from 'react-hotkeys-hook';
 
 import { findNodePosition, isNodeInSchema, isNodeTypeSelected, isValidPosition } from '@/lib';
 

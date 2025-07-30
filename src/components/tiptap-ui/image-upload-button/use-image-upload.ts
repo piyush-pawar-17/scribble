@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ImagePlusIcon } from '@/components';
 import { type Editor } from '@tiptap/react';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+import { ImagePlusIcon } from '@/components';
 
 import { isExtensionAvailable, isNodeTypeSelected } from '@/lib';
 

@@ -1,6 +1,7 @@
 import type { JSONContent } from '@tiptap/react';
-import { format } from 'date-fns';
 import Dexie, { type EntityTable } from 'dexie';
+
+import { DEFAULT_NOTE_TITLE, to } from '@/lib';
 
 export interface NoteContent {
     content: string;
@@ -20,11 +21,11 @@ export const db = new Dexie('notes') as Dexie & {
 };
 
 db.version(1).stores({
-    notes: '++id'
+    notes: '++id, lastUpdatedAt'
 });
 
 export async function createNote(title?: string) {
-    const noteTitle = title?.trim() || `Notes for ${format(Date.now(), 'dd-MM-yyyy')}`;
+    const noteTitle = title?.trim() || DEFAULT_NOTE_TITLE;
     const initialNote: Note = {
         title: noteTitle,
         content: {},
@@ -32,7 +33,14 @@ export async function createNote(title?: string) {
         createdAt: Date.now()
     };
 
-    const newNoteId = await db.notes.add(initialNote);
+    const [error, newNoteId] = await to(db.notes.add(initialNote));
+
+    if (error) {
+        return {
+            code: 500,
+            error
+        } as const;
+    }
 
     return {
         code: 201,
@@ -59,5 +67,18 @@ export async function updateNote(noteId: number, content: JSONContent) {
 }
 
 export async function getNotes() {
-    return await db.notes.orderBy('id').reverse().toArray();
+    const [error, notes] = await to(db.notes.orderBy('lastUpdatedAt').reverse().toArray());
+
+    if (error) {
+        return {
+            code: 500,
+            error,
+            errorMessage: 'Error occured while fetching notes'
+        } as const;
+    }
+
+    return {
+        code: 200,
+        notes
+    } as const;
 }

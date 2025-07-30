@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ListIcon, ListOrderedIcon, ListTodoIcon } from '@/components';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import { type Editor } from '@tiptap/react';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+import { ListIcon, ListOrderedIcon, ListTodoIcon } from '@/components';
 
 import { findNodePosition, isNodeInSchema, isNodeTypeSelected, isValidPosition } from '@/lib';
 

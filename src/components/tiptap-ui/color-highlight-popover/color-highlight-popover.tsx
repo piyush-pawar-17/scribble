@@ -1,5 +1,7 @@
 import { forwardRef, useMemo, useRef, useState } from 'react';
 
+import { type Editor } from '@tiptap/react';
+
 import {
     BanIcon,
     Button,
@@ -19,7 +21,6 @@ import {
     pickHighlightColorsByValue,
     useColorHighlight
 } from '@/components';
-import { type Editor } from '@tiptap/react';
 
 import { useIsMobile, useMenuNavigation, useTiptapEditor } from '@/hooks';
 

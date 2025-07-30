@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import type { Editor } from '@tiptap/react';
+import { useHotkeys } from 'react-hotkeys-hook';
+
 import {
     BoldIcon,
     Code2Icon,
@@ -9,8 +12,6 @@ import {
     SuperscriptIcon,
     UnderlineIcon
 } from '@/components';
-import type { Editor } from '@tiptap/react';
-import { useHotkeys } from 'react-hotkeys-hook';
 
 import { isMarkInSchema, isNodeTypeSelected } from '@/lib';
 

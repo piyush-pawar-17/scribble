@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { BlockquoteIcon } from '@/components';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import type { Editor } from '@tiptap/react';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+import { BlockquoteIcon } from '@/components';
 
 import { findNodePosition, isNodeInSchema, isNodeTypeSelected, isValidPosition } from '@/lib';
 

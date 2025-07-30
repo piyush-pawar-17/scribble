@@ -1,5 +1,7 @@
 import { forwardRef, useCallback, useEffect, useState } from 'react';
 
+import type { Editor } from '@tiptap/react';
+
 import {
     Button,
     ButtonGroup,
@@ -20,7 +22,6 @@ import {
     type UseLinkPopoverConfig,
     useLinkPopover
 } from '@/components';
-import type { Editor } from '@tiptap/react';
 
 import { useIsMobile, useTiptapEditor } from '@/hooks';
 

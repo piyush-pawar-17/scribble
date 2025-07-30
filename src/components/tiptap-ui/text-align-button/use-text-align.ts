@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { AlignCenterIcon, AlignJustifyIcon, AlignLeftIcon, AlignRightIcon } from '@/components';
 import type { ChainedCommands } from '@tiptap/react';
 import { type Editor } from '@tiptap/react';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+import { AlignCenterIcon, AlignJustifyIcon, AlignLeftIcon, AlignRightIcon } from '@/components';
 
 import { isExtensionAvailable, isNodeTypeSelected } from '@/lib';
 
