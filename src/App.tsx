@@ -230,10 +230,7 @@ function App() {
 
                 <Dialog open={isNewNoteDialogOpen} onOpenChange={setIsNewNoteDialogOpen}>
                     <DialogTrigger asChild>
-                        <div
-                            style={{ width: 'calc(384px - 48px)' }}
-                            className="fixed bottom-0 bg-[var(--tt-bg-color)] p-4"
-                        >
+                        <div className="fixed bottom-0 left-0 bg-[var(--tt-bg-color)] p-4 sm:w-96">
                             <Button className="flex w-full items-center justify-center gap-2">
                                 <Plus size={16} /> New note
                             </Button>
