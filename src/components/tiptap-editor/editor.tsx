@@ -79,11 +79,17 @@ lowlight.register('json', json);
 lowlight.register('sql', sql);
 lowlight.register('rust', rust);
 
-export function Editor() {
+interface EditorProps {
+    isDarkMode: boolean;
+    toggleDarkMode: () => void;
+    content?: Content;
+}
+
+export function Editor({ isDarkMode, toggleDarkMode, content }: EditorProps) {
     const isMobile = useIsMobile();
     const [mobileView, setMobileView] = useState<'main' | 'highlighter' | 'link'>('main');
     const toolbarRef = useRef<HTMLDivElement>(null);
-    const [editorState, setEditorState] = useState<Content>({});
+    const [editorState, setEditorState] = useState<Content>(content || {});
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -156,6 +162,8 @@ export function Editor() {
                             onHighlighterClick={() => setMobileView('highlighter')}
                             onLinkClick={() => setMobileView('link')}
                             isMobile={isMobile}
+                            isDarkMode={isDarkMode}
+                            toggleDarkMode={toggleDarkMode}
                         />
                     ) : (
                         <MobileToolbarContent
@@ -174,11 +182,15 @@ export function Editor() {
 function MainToolbarContent({
     onHighlighterClick,
     onLinkClick,
-    isMobile
+    isMobile,
+    isDarkMode,
+    toggleDarkMode
 }: {
     onHighlighterClick: () => void;
     onLinkClick: () => void;
     isMobile: boolean;
+    isDarkMode: boolean;
+    toggleDarkMode: () => void;
 }) {
     return (
         <>
@@ -233,7 +245,7 @@ function MainToolbarContent({
             {isMobile && <ToolbarSeparator />}
 
             <ToolbarGroup>
-                <ThemeToggle />
+                <ThemeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
             </ToolbarGroup>
         </>
     );

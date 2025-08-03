@@ -17,6 +17,7 @@ export default {
         '^@/lib(.*)$',
         '^@/hooks(.*)$',
         '^@/utils(.*)$',
+        '^@/assets(.*)$',
         '^[./]',
         '^import\\s+type.*$',
         '\\.scss$',
