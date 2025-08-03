@@ -443,6 +443,38 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex, handleGetNot
         }
     );
 
+    useKeyboardShortcut(
+        'e',
+        () => {
+            if (selectedNote?.id === note.id) {
+                setIsEditTitleOpen(true);
+            }
+        },
+        {
+            ctrlKey: true,
+            metaKey: true,
+            shiftKey: false,
+            preventDefault: true,
+            preventInInput: false
+        }
+    );
+
+    useKeyboardShortcut(
+        'd',
+        () => {
+            if (selectedNote?.id === note.id) {
+                setIsDeleteNoteOpen(true);
+            }
+        },
+        {
+            ctrlKey: true,
+            metaKey: true,
+            shiftKey: false,
+            preventDefault: true,
+            preventInInput: false
+        }
+    );
+
     async function handleEditNoteTitle(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
@@ -539,126 +571,131 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex, handleGetNot
 
                 <PopoverContent align="end">
                     <div className="flex min-w-20 flex-col gap-2 rounded bg-[var(--tt-bg-color)] p-2 text-sm">
-                        <Dialog open={isEditTitleOpen} onOpenChange={setIsEditTitleOpen}>
-                            <DialogTrigger asChild>
-                                <button className="flex w-full cursor-pointer items-center justify-between gap-4 rounded px-2 py-1 hover:bg-neutral-200 dark:hover:bg-neutral-800">
-                                    <span className="flex items-center gap-1.5">
-                                        <span>
-                                            <Pencil size={14} />
-                                        </span>
-                                        <span>Edit</span>
-                                    </span>
-                                    {note.id === selectedNote?.id && (
-                                        <span className="flex items-center gap-1">
-                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                                {isMac() ? 'Cmd' : 'Ctrl'}
-                                            </kbd>
-                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                                E
-                                            </kbd>
-                                        </span>
-                                    )}
-                                </button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                                <form onSubmit={handleEditNoteTitle}>
-                                    <DialogHeader className="mb-4">
-                                        <DialogTitle>Note title</DialogTitle>
-                                        <DialogDescription className="sr-only">
-                                            Enter the title for the note
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="mb-4 flex flex-1 flex-col gap-2">
-                                        <label htmlFor="note-title" className="sr-only">
-                                            Note title
-                                        </label>
-                                        <input
-                                            id="note-title"
-                                            name="title"
-                                            className="rounded-md border border-neutral-400 px-2 py-1 focus:ring focus:ring-neutral-600 focus:outline-none dark:focus:ring-neutral-50"
-                                            onChange={() => {
-                                                if (editErrorTimeoutRef.current) {
-                                                    clearTimeout(editErrorTimeoutRef.current);
-                                                    setDidEditNoteFail(false);
-                                                }
-                                            }}
-                                            defaultValue={note.title}
-                                        />
-                                        <p
-                                            className={cn('invisible text-sm text-red-500 dark:text-red-400', {
-                                                visible: didEditNoteFail
-                                            })}
-                                        >
-                                            {updateError || 'Error occured while updating the title'}
-                                        </p>
-                                    </div>
-                                    <DialogFooter className="sm:justify-start">
-                                        <Button
-                                            type="submit"
-                                            className="flex items-center justify-center gap-2 bg-blue-600 text-neutral-50 hover:bg-blue-800 focus-visible:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-100 focus-visible:outline-none dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus-visible:bg-blue-700 dark:focus-visible:ring-blue-700 dark:focus-visible:ring-offset-neutral-950"
-                                        >
-                                            Update
-                                        </Button>
-                                        <DialogClose asChild>
-                                            <Button>Close</Button>
-                                        </DialogClose>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
-                        <Dialog open={isDeleteNoteOpen} onOpenChange={setIsDeleteNoteOpen}>
-                            <DialogTrigger asChild>
-                                <button className="flex w-full cursor-pointer items-center justify-between gap-4 rounded px-2 py-1 text-red-500 hover:bg-neutral-200 dark:text-red-400 dark:hover:bg-neutral-800">
-                                    <span className="flex items-center gap-1.5">
-                                        <span>
-                                            <Trash size={14} />
-                                        </span>
-                                        <span>Delete</span>
-                                    </span>
-                                    {note.id === selectedNote?.id && (
-                                        <span className="flex items-center gap-1">
-                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                                {isMac() ? 'Cmd' : 'Ctrl'}
-                                            </kbd>
-                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                                D
-                                            </kbd>
-                                        </span>
-                                    )}
-                                </button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md gap-2">
-                                <DialogHeader className="mb-0">
-                                    <DialogTitle>Delete Note</DialogTitle>
-                                    <DialogDescription className="mt-1">
-                                        Are you sure you want to delete "{note.title}"
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <form onSubmit={handleDeleteNote}>
-                                    <p
-                                        className={cn('mb-4 invisible text-sm text-red-500 dark:text-red-400', {
-                                            visible: didDeleteNoteFail
-                                        })}
-                                    >
-                                        Error occured while deleting the note
-                                    </p>
-                                    <DialogFooter className="sm:justify-start">
-                                        <Button
-                                            type="submit"
-                                            className="flex items-center justify-center gap-2 bg-red-500 text-neutral-50 hover:bg-red-700 focus-visible:bg-red-600 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-100 focus-visible:outline-none dark:bg-red-600 dark:hover:bg-red-700 dark:focus-visible:bg-red-700 dark:focus-visible:ring-red-700 dark:focus-visible:ring-offset-neutral-950"
-                                        >
-                                            Delete
-                                        </Button>
-                                        <DialogClose asChild>
-                                            <Button>Close</Button>
-                                        </DialogClose>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
+                        <button
+                            onClick={() => setIsEditTitleOpen(true)}
+                            className="flex w-full cursor-pointer items-center justify-between gap-4 rounded px-2 py-1 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                        >
+                            <span className="flex items-center gap-1.5">
+                                <span>
+                                    <Pencil size={14} />
+                                </span>
+                                <span>Edit</span>
+                            </span>
+                            {note.id === selectedNote?.id && (
+                                <span className="flex items-center gap-1">
+                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                        {isMac() ? 'Cmd' : 'Ctrl'}
+                                    </kbd>
+                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                        E
+                                    </kbd>
+                                </span>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={() => setIsDeleteNoteOpen(true)}
+                            className="flex w-full cursor-pointer items-center justify-between gap-4 rounded px-2 py-1 text-red-500 hover:bg-neutral-200 dark:text-red-400 dark:hover:bg-neutral-800"
+                        >
+                            <span className="flex items-center gap-1.5">
+                                <span>
+                                    <Trash size={14} />
+                                </span>
+                                <span>Delete</span>
+                            </span>
+                            {note.id === selectedNote?.id && (
+                                <span className="flex items-center gap-1">
+                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                        {isMac() ? 'Cmd' : 'Ctrl'}
+                                    </kbd>
+                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                        D
+                                    </kbd>
+                                </span>
+                            )}
+                        </button>
                     </div>
                 </PopoverContent>
             </Popover>
+
+            {/* Edit title modal */}
+            <Dialog open={isEditTitleOpen} onOpenChange={setIsEditTitleOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <form onSubmit={handleEditNoteTitle}>
+                        <DialogHeader className="mb-4">
+                            <DialogTitle>Note title</DialogTitle>
+                            <DialogDescription className="sr-only">Enter the title for the note</DialogDescription>
+                        </DialogHeader>
+                        <div className="mb-4 flex flex-1 flex-col gap-2">
+                            <label htmlFor="note-title" className="sr-only">
+                                Note title
+                            </label>
+                            <input
+                                id="note-title"
+                                name="title"
+                                className="rounded-md border border-neutral-400 px-2 py-1 focus:ring focus:ring-neutral-600 focus:outline-none dark:focus:ring-neutral-50"
+                                onChange={() => {
+                                    if (editErrorTimeoutRef.current) {
+                                        clearTimeout(editErrorTimeoutRef.current);
+                                        setDidEditNoteFail(false);
+                                    }
+                                }}
+                                defaultValue={note.title}
+                            />
+                            <p
+                                className={cn('invisible text-sm text-red-500 dark:text-red-400', {
+                                    visible: didEditNoteFail
+                                })}
+                            >
+                                {updateError || 'Error occured while updating the title'}
+                            </p>
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                            <Button
+                                type="submit"
+                                className="flex items-center justify-center gap-2 bg-blue-600 text-neutral-50 hover:bg-blue-800 focus-visible:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-100 focus-visible:outline-none dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus-visible:bg-blue-700 dark:focus-visible:ring-blue-700 dark:focus-visible:ring-offset-neutral-950"
+                            >
+                                Update
+                            </Button>
+                            <DialogClose asChild>
+                                <Button>Close</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete note modal */}
+            <Dialog open={isDeleteNoteOpen} onOpenChange={setIsDeleteNoteOpen}>
+                <DialogContent className="gap-2 sm:max-w-md">
+                    <DialogHeader className="mb-0">
+                        <DialogTitle>Delete Note</DialogTitle>
+                        <DialogDescription className="mt-1">
+                            Are you sure you want to delete "{note.title}"
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleDeleteNote}>
+                        <p
+                            className={cn('invisible mb-4 text-sm text-red-500 dark:text-red-400', {
+                                visible: didDeleteNoteFail
+                            })}
+                        >
+                            Error occured while deleting the note
+                        </p>
+                        <DialogFooter className="sm:justify-start">
+                            <Button
+                                type="submit"
+                                className="flex items-center justify-center gap-2 bg-red-500 text-neutral-50 hover:bg-red-700 focus-visible:bg-red-600 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-100 focus-visible:outline-none dark:bg-red-600 dark:hover:bg-red-700 dark:focus-visible:bg-red-700 dark:focus-visible:ring-red-700 dark:focus-visible:ring-offset-neutral-950"
+                            >
+                                Delete
+                            </Button>
+                            <DialogClose asChild>
+                                <Button>Close</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
