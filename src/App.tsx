@@ -167,7 +167,10 @@ function App() {
 
     return (
         <main className="flex h-full">
-            <aside className="hidden w-96 shrink-0 flex-col justify-between border-r border-neutral-300 p-4 sm:flex dark:border-r-neutral-800">
+            <aside
+                style={{ scrollbarGutter: 'stable both-edges' }}
+                className="hidden w-96 shrink-0 flex-col justify-between overflow-auto border-r border-neutral-300 p-4 pb-20 sm:flex sm:max-h-screen dark:border-r-neutral-800"
+            >
                 <div>
                     <h3 className="flex items-center justify-between">
                         <p className="flex items-center gap-2">
@@ -227,9 +230,14 @@ function App() {
 
                 <Dialog open={isNewNoteDialogOpen} onOpenChange={setIsNewNoteDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="flex items-center justify-center gap-2">
-                            <Plus size={16} /> New note
-                        </Button>
+                        <div
+                            style={{ width: 'calc(384px - 48px)' }}
+                            className="fixed bottom-0 bg-[var(--tt-bg-color)] p-4"
+                        >
+                            <Button className="flex w-full items-center justify-center gap-2">
+                                <Plus size={16} /> New note
+                            </Button>
+                        </div>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                         <form onSubmit={handleCreateNote}>
@@ -353,13 +361,13 @@ function NoteCards({ notes, selectedNote, setSelectedNote }: NoteCardsProps) {
     return (
         <div className="flex flex-col gap-6">
             {Object.entries(Object.groupBy(notes, ({ lastUpdatedAt }) => format(lastUpdatedAt, 'MMM dd, yyyy'))).map(
-                ([date, notes]) => {
+                ([date, notes], groupIdx) => {
                     if (!notes) {
                         return null;
                     }
 
                     return (
-                        <div>
+                        <div key={date + groupIdx}>
                             <p className="mb-2 text-lg">{date}</p>
                             <div className="flex flex-col gap-3">
                                 {notes.map((note) => {
@@ -367,6 +375,7 @@ function NoteCards({ notes, selectedNote, setSelectedNote }: NoteCardsProps) {
 
                                     return (
                                         <NoteCard
+                                            key={note.createdAt}
                                             note={note}
                                             noteIndex={noteIndex}
                                             selectedNote={selectedNote}
@@ -409,7 +418,6 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex }: NoteCardPr
 
     return (
         <Button
-            key={note.createdAt}
             className={cn(
                 'flex w-full flex-col gap-2 rounded-md bg-neutral-200 text-left focus-visible:bg-neutral-200 dark:hover:bg-neutral-800 dark:focus-visible:bg-neutral-800',
                 {
