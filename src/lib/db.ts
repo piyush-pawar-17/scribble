@@ -51,6 +51,35 @@ export async function createNote(title?: string) {
     } as const;
 }
 
+export async function updateNoteTitle(noteId: number, title: string) {
+    if (title.trim().length === 0) {
+        return {
+            code: 400,
+            error: 'Title should have atleast one non-whitespace character'
+        } as const;
+    }
+
+    const [error, recordsUpdated] = await to(db.notes.update(noteId, { title, lastUpdatedAt: Date.now() }));
+
+    if (error) {
+        return {
+            code: 500,
+            error
+        } as const;
+    }
+
+    if (recordsUpdated === 0) {
+        return {
+            code: 404,
+            message: 'No note found with the given id'
+        } as const;
+    }
+
+    return {
+        code: 200
+    } as const;
+}
+
 export async function updateNote(noteId: number, content: JSONContent) {
     const [error, recordsUpdated] = await to(db.notes.update(noteId, { content, lastUpdatedAt: Date.now() }));
 
@@ -87,5 +116,20 @@ export async function getNotes() {
     return {
         code: 200,
         notes
+    } as const;
+}
+
+export async function deleteNote(noteId: number) {
+    const [error] = await to(db.notes.delete(noteId));
+
+    if (error) {
+        return {
+            code: 500,
+            error
+        } as const;
+    }
+
+    return {
+        code: 200
     } as const;
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { type JSONContent } from '@tiptap/react';
 import { format, formatDistance } from 'date-fns';
-import { LoaderCircle, Plus, RotateCcw } from 'lucide-react';
+import { Ellipsis, LoaderCircle, Pencil, Plus, RotateCcw, Trash } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import {
@@ -17,10 +17,23 @@ import {
     DialogTrigger,
     Editor,
     Logo,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
     ThemeToggle
 } from '@/components';
 
-import { DEFAULT_NOTE_TITLE, type Note, cn, createNote, getNotes, isMac, updateNote } from '@/lib';
+import {
+    DEFAULT_NOTE_TITLE,
+    type Note,
+    cn,
+    createNote,
+    deleteNote,
+    getNotes,
+    isMac,
+    updateNote,
+    updateNoteTitle
+} from '@/lib';
 
 import { useKeyboardShortcut } from '@/hooks';
 
@@ -205,6 +218,7 @@ function App() {
                                     notes={notes.notes}
                                     selectedNote={selectedNote}
                                     setSelectedNote={setSelectedNote}
+                                    handleGetNotes={handleGetNotes}
                                 />
                             </div>
                         ) : notes.notes.length === 0 ? (
@@ -223,6 +237,7 @@ function App() {
                                 notes={notes.notes}
                                 selectedNote={selectedNote}
                                 setSelectedNote={setSelectedNote}
+                                handleGetNotes={handleGetNotes}
                             />
                         )}
                     </section>
@@ -350,9 +365,11 @@ interface NoteCardsProps {
     notes: Note[];
     selectedNote: Note | null;
     setSelectedNote: React.Dispatch<React.SetStateAction<Note | null>>;
+    /* eslint-disable-next-line no-unused-vars */
+    handleGetNotes: (statusProps?: { initalStatus?: 'FETCHING' | 'REFETCHING' }) => Promise<void>;
 }
 
-function NoteCards({ notes, selectedNote, setSelectedNote }: NoteCardsProps) {
+function NoteCards({ notes, selectedNote, setSelectedNote, handleGetNotes }: NoteCardsProps) {
     let noteIndex = 0;
 
     return (
@@ -377,6 +394,7 @@ function NoteCards({ notes, selectedNote, setSelectedNote }: NoteCardsProps) {
                                             noteIndex={noteIndex}
                                             selectedNote={selectedNote}
                                             setSelectedNote={setSelectedNote}
+                                            handleGetNotes={handleGetNotes}
                                         />
                                     );
                                 })}
@@ -394,9 +412,21 @@ interface NoteCardProps {
     selectedNote: Note | null;
     setSelectedNote: React.Dispatch<React.SetStateAction<Note | null>>;
     noteIndex: number;
+    /* eslint-disable-next-line no-unused-vars */
+    handleGetNotes: (statusProps?: { initalStatus?: 'FETCHING' | 'REFETCHING' }) => Promise<void>;
 }
 
-function NoteCard({ note, selectedNote, setSelectedNote, noteIndex }: NoteCardProps) {
+function NoteCard({ note, selectedNote, setSelectedNote, noteIndex, handleGetNotes }: NoteCardProps) {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isEditTitleOpen, setIsEditTitleOpen] = useState(false);
+    const [isDeleteNoteOpen, setIsDeleteNoteOpen] = useState(false);
+    const [didEditNoteFail, setDidEditNoteFail] = useState(false);
+    const [updateError, setUpdateError] = useState('');
+    const [didDeleteNoteFail, setDidDeleteNoteFail] = useState(false);
+
+    const editErrorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const deleteErrorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     useKeyboardShortcut(
         noteIndex.toString(),
         () => {
@@ -413,20 +443,65 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex }: NoteCardPr
         }
     );
 
+    async function handleEditNoteTitle(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target as HTMLFormElement);
+
+        const title = formData.get('title') as string;
+
+        const { code, error } = await updateNoteTitle(note.id!, title);
+
+        if (code === 400) {
+            setDidEditNoteFail(true);
+            setUpdateError(error);
+
+            editErrorTimeoutRef.current = setTimeout(() => {
+                setDidEditNoteFail(false);
+                setUpdateError('');
+            }, 2500);
+        } else if (code !== 200) {
+            setDidEditNoteFail(true);
+
+            editErrorTimeoutRef.current = setTimeout(() => {
+                setDidEditNoteFail(false);
+            }, 2500);
+        } else {
+            setIsEditTitleOpen(false);
+            handleGetNotes({ initalStatus: 'REFETCHING' });
+        }
+    }
+
+    async function handleDeleteNote(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        const { code } = await deleteNote(note.id!);
+        if (code !== 200) {
+            setDidDeleteNoteFail(true);
+
+            deleteErrorTimeoutRef.current = setTimeout(() => {
+                setDidDeleteNoteFail(false);
+            }, 2500);
+        } else {
+            setIsDeleteNoteOpen(false);
+            handleGetNotes({ initalStatus: 'REFETCHING' });
+        }
+    }
+
     return (
-        <Button
-            className={cn(
-                'flex w-full flex-col gap-2 rounded-md bg-neutral-200 text-left focus-visible:bg-neutral-200 dark:hover:bg-neutral-800 dark:focus-visible:bg-neutral-800',
-                {
-                    'bg-blue-700 text-neutral-50 hover:bg-blue-600 focus-visible:bg-blue-700 focus-visible:ring-blue-700 dark:bg-blue-500 dark:text-neutral-950 dark:hover:bg-blue-600 focus-visible:dark:bg-blue-500 focus-visible:dark:ring-blue-500':
-                        selectedNote?.id === note.id,
-                    'pb-3': noteIndex <= 9
-                }
-            )}
-            onClick={() => setSelectedNote(note)}
-        >
-            <span>{note.title}</span>
-            {noteIndex <= 9 && (
+        <div className="relative">
+            <Button
+                className={cn(
+                    'flex w-full flex-col gap-2 rounded-md bg-neutral-200 text-left focus-visible:bg-neutral-200 dark:hover:bg-neutral-800 dark:focus-visible:bg-neutral-800',
+                    {
+                        'bg-blue-700 text-neutral-50 hover:bg-blue-600 focus-visible:bg-blue-700 focus-visible:ring-blue-700 dark:bg-blue-500 dark:text-neutral-950 dark:hover:bg-blue-600 focus-visible:dark:bg-blue-500 focus-visible:dark:ring-blue-500':
+                            selectedNote?.id === note.id,
+                        'pb-3': noteIndex <= 9
+                    }
+                )}
+                onClick={() => setSelectedNote(note)}
+            >
+                <span className="max-w-10/12">{note.title}</span>
                 <span className="flex items-end justify-between gap-1 text-sm">
                     <span className="flex flex-wrap items-center gap-1 text-xs">
                         Updated
@@ -435,20 +510,156 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex }: NoteCardPr
                         </time>
                         ago
                     </span>
-                    <kbd
-                        className={cn(
-                            'shrink-0 rounded border border-neutral-300 bg-neutral-200 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-800',
-                            {
-                                'border-blue-400 bg-blue-600 dark:border-blue-700 dark:bg-blue-300':
-                                    selectedNote?.id === note.id
-                            }
-                        )}
-                    >
-                        {isMac() ? 'Cmd' : 'Ctrl'} + {noteIndex}
-                    </kbd>
+                    {noteIndex <= 9 && (
+                        <kbd
+                            className={cn(
+                                'shrink-0 rounded border border-neutral-300 bg-neutral-200 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-800',
+                                {
+                                    'border-blue-400 bg-blue-600 dark:border-blue-700 dark:bg-blue-300':
+                                        selectedNote?.id === note.id
+                                }
+                            )}
+                        >
+                            {isMac() ? 'Cmd' : 'Ctrl'} + {noteIndex}
+                        </kbd>
+                    )}
                 </span>
-            )}
-        </Button>
+            </Button>
+            <Popover open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        className={cn('absolute top-1 right-1 rounded p-1', {
+                            'bg-blue-700 text-neutral-50 hover:bg-blue-600 focus-visible:bg-blue-700 focus-visible:ring-blue-700 dark:bg-blue-500 dark:text-neutral-950 dark:hover:bg-blue-600 focus-visible:dark:bg-blue-500 focus-visible:dark:ring-blue-500':
+                                selectedNote?.id === note.id
+                        })}
+                    >
+                        <Ellipsis size={16} />
+                    </Button>
+                </PopoverTrigger>
+
+                <PopoverContent align="end">
+                    <div className="flex min-w-20 flex-col gap-2 rounded bg-[var(--tt-bg-color)] p-2 text-sm">
+                        <Dialog open={isEditTitleOpen} onOpenChange={setIsEditTitleOpen}>
+                            <DialogTrigger asChild>
+                                <button className="flex w-full cursor-pointer items-center justify-between gap-4 rounded px-2 py-1 hover:bg-neutral-200 dark:hover:bg-neutral-800">
+                                    <span className="flex items-center gap-1.5">
+                                        <span>
+                                            <Pencil size={14} />
+                                        </span>
+                                        <span>Edit</span>
+                                    </span>
+                                    {note.id === selectedNote?.id && (
+                                        <span className="flex items-center gap-1">
+                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                                {isMac() ? 'Cmd' : 'Ctrl'}
+                                            </kbd>
+                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                                E
+                                            </kbd>
+                                        </span>
+                                    )}
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                                <form onSubmit={handleEditNoteTitle}>
+                                    <DialogHeader className="mb-4">
+                                        <DialogTitle>Note title</DialogTitle>
+                                        <DialogDescription className="sr-only">
+                                            Enter the title for the note
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="mb-4 flex flex-1 flex-col gap-2">
+                                        <label htmlFor="note-title" className="sr-only">
+                                            Note title
+                                        </label>
+                                        <input
+                                            id="note-title"
+                                            name="title"
+                                            className="rounded-md border border-neutral-400 px-2 py-1 focus:ring focus:ring-neutral-600 focus:outline-none dark:focus:ring-neutral-50"
+                                            onChange={() => {
+                                                if (editErrorTimeoutRef.current) {
+                                                    clearTimeout(editErrorTimeoutRef.current);
+                                                    setDidEditNoteFail(false);
+                                                }
+                                            }}
+                                            defaultValue={note.title}
+                                        />
+                                        <p
+                                            className={cn('invisible text-sm text-red-500 dark:text-red-400', {
+                                                visible: didEditNoteFail
+                                            })}
+                                        >
+                                            {updateError || 'Error occured while updating the title'}
+                                        </p>
+                                    </div>
+                                    <DialogFooter className="sm:justify-start">
+                                        <Button
+                                            type="submit"
+                                            className="flex items-center justify-center gap-2 bg-blue-600 text-neutral-50 hover:bg-blue-800 focus-visible:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-100 focus-visible:outline-none dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus-visible:bg-blue-700 dark:focus-visible:ring-blue-700 dark:focus-visible:ring-offset-neutral-950"
+                                        >
+                                            Update
+                                        </Button>
+                                        <DialogClose asChild>
+                                            <Button>Close</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog open={isDeleteNoteOpen} onOpenChange={setIsDeleteNoteOpen}>
+                            <DialogTrigger asChild>
+                                <button className="flex w-full cursor-pointer items-center justify-between gap-4 rounded px-2 py-1 text-red-500 hover:bg-neutral-200 dark:text-red-400 dark:hover:bg-neutral-800">
+                                    <span className="flex items-center gap-1.5">
+                                        <span>
+                                            <Trash size={14} />
+                                        </span>
+                                        <span>Delete</span>
+                                    </span>
+                                    {note.id === selectedNote?.id && (
+                                        <span className="flex items-center gap-1">
+                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                                {isMac() ? 'Cmd' : 'Ctrl'}
+                                            </kbd>
+                                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+                                                D
+                                            </kbd>
+                                        </span>
+                                    )}
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md gap-2">
+                                <DialogHeader className="mb-0">
+                                    <DialogTitle>Delete Note</DialogTitle>
+                                    <DialogDescription className="mt-1">
+                                        Are you sure you want to delete "{note.title}"
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={handleDeleteNote}>
+                                    <p
+                                        className={cn('mb-4 invisible text-sm text-red-500 dark:text-red-400', {
+                                            visible: didDeleteNoteFail
+                                        })}
+                                    >
+                                        Error occured while deleting the note
+                                    </p>
+                                    <DialogFooter className="sm:justify-start">
+                                        <Button
+                                            type="submit"
+                                            className="flex items-center justify-center gap-2 bg-red-500 text-neutral-50 hover:bg-red-700 focus-visible:bg-red-600 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-100 focus-visible:outline-none dark:bg-red-600 dark:hover:bg-red-700 dark:focus-visible:bg-red-700 dark:focus-visible:ring-red-700 dark:focus-visible:ring-offset-neutral-950"
+                                        >
+                                            Delete
+                                        </Button>
+                                        <DialogClose asChild>
+                                            <Button>Close</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </PopoverContent>
+            </Popover>
+        </div>
     );
 }
 
