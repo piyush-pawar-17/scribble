@@ -9,7 +9,7 @@ import { Superscript } from '@tiptap/extension-superscript';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { Typography } from '@tiptap/extension-typography';
 import { Selection } from '@tiptap/extensions';
-import { type Content, EditorContent, EditorContext, useEditor } from '@tiptap/react';
+import { type Content, EditorContent, EditorContext, type JSONContent, useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import bash from 'highlight.js/lib/languages/bash';
 import c from 'highlight.js/lib/languages/c';
@@ -25,6 +25,7 @@ import sql from 'highlight.js/lib/languages/sql';
 import ts from 'highlight.js/lib/languages/typescript';
 import html from 'highlight.js/lib/languages/xml';
 import { all, createLowlight } from 'lowlight';
+import type { DebouncedState } from 'use-debounce';
 
 import {
     ArrowLeftIcon,
@@ -52,7 +53,9 @@ import {
     UndoRedoButton
 } from '@/components';
 
-import { useIsMobile } from '@/hooks/use-mobile';
+import { type Note } from '@/lib';
+
+import { useIsMobile } from '@/hooks';
 
 import '@/components/tiptap-editor/editor.scss';
 import '@/components/tiptap-node/blockquote-node/blockquote-node.scss';
@@ -82,14 +85,16 @@ lowlight.register('rust', rust);
 interface EditorProps {
     isDarkMode: boolean;
     toggleDarkMode: () => void;
-    content?: Content;
+    note: Note | null;
+    /* eslint-disable-next-line no-unused-vars */
+    handleUpdateNote: DebouncedState<(noteId: number, value: JSONContent) => Promise<void>>;
 }
 
-export function Editor({ isDarkMode, toggleDarkMode, content }: EditorProps) {
+export function Editor({ isDarkMode, toggleDarkMode, note, handleUpdateNote }: EditorProps) {
     const isMobile = useIsMobile();
     const [mobileView, setMobileView] = useState<'main' | 'highlighter' | 'link'>('main');
     const toolbarRef = useRef<HTMLDivElement>(null);
-    const [editorState, setEditorState] = useState<Content>(content || {});
+    const [editorState, setEditorState] = useState<Content>(note?.content || {});
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -130,11 +135,13 @@ export function Editor({ isDarkMode, toggleDarkMode, content }: EditorProps) {
         ],
         content: editorState,
         onCreate: (props) => {
-            setEditorState(props.editor.getJSON());
-            console.log(props.editor.getJSON());
+            props.editor.commands.focus('end');
         },
         onUpdate: (props) => {
-            console.log(props.editor.getJSON());
+            setEditorState(props.editor.getJSON());
+            if (note) {
+                handleUpdateNote(note.id!, props.editor.getJSON());
+            }
         }
     });
 

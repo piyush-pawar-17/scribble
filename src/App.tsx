@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { format } from 'date-fns';
+import { type JSONContent } from '@tiptap/react';
+import { format, formatDistance } from 'date-fns';
 import { LoaderCircle, Plus, RotateCcw } from 'lucide-react';
+import { useDebouncedCallback } from 'use-debounce';
 
 import {
     UIButton as Button,
@@ -18,8 +20,7 @@ import {
     ThemeToggle
 } from '@/components';
 
-import { isMac } from '@/lib';
-import { DEFAULT_NOTE_TITLE, type Note, cn, createNote, getNotes } from '@/lib';
+import { DEFAULT_NOTE_TITLE, type Note, cn, createNote, getNotes, isMac, updateNote } from '@/lib';
 
 import { useKeyboardShortcut } from '@/hooks';
 
@@ -55,6 +56,11 @@ function App() {
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
     const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleUpdateNote = useDebouncedCallback(async (noteId: number, value: JSONContent) => {
+        await updateNote(noteId, value);
+        await handleGetNotes({ initalStatus: 'REFETCHING' });
+    }, 500);
 
     async function handleGetNotes({ initalStatus = 'FETCHING' }: { initalStatus?: 'FETCHING' | 'REFETCHING' } = {}) {
         setNotes((prevState) => {
@@ -299,7 +305,13 @@ function App() {
                         </Button>
                     </div>
                 ) : notes.status === 'REFETCHING' ? (
-                    <Editor content={selectedNote?.content} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+                    <Editor
+                        key={selectedNote?.id}
+                        note={selectedNote}
+                        isDarkMode={isDarkMode}
+                        toggleDarkMode={toggleDarkMode}
+                        handleUpdateNote={handleUpdateNote}
+                    />
                 ) : notes.notes.length === 0 ? (
                     <div className="p-4">
                         <div className="ml-auto w-fit">
@@ -316,7 +328,13 @@ function App() {
                         </p>
                     </div>
                 ) : (
-                    <Editor content={selectedNote?.content} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+                    <Editor
+                        key={selectedNote?.id}
+                        note={selectedNote}
+                        isDarkMode={isDarkMode}
+                        toggleDarkMode={toggleDarkMode}
+                        handleUpdateNote={handleUpdateNote}
+                    />
                 )}
             </section>
         </main>
@@ -395,7 +413,7 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex }: NoteCardPr
             className={cn(
                 'flex w-full flex-col gap-2 rounded-md bg-neutral-200 text-left focus-visible:bg-neutral-200 dark:hover:bg-neutral-800 dark:focus-visible:bg-neutral-800',
                 {
-                    'bg-blue-700 text-neutral-50 focus-visible:bg-blue-700 focus-visible:ring-blue-700 dark:bg-blue-500 dark:text-neutral-950 focus-visible:dark:bg-blue-500 focus-visible:dark:ring-blue-500':
+                    'bg-blue-700 text-neutral-50 hover:bg-blue-600 focus-visible:bg-blue-700 focus-visible:ring-blue-700 dark:bg-blue-500 dark:text-neutral-950 dark:hover:bg-blue-600 focus-visible:dark:bg-blue-500 focus-visible:dark:ring-blue-500':
                         selectedNote?.id === note.id,
                     'pb-3': noteIndex <= 9
                 }
@@ -404,12 +422,19 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex }: NoteCardPr
         >
             <span>{note.title}</span>
             {noteIndex <= 9 && (
-                <span className="ml-auto text-sm">
+                <span className="flex items-end justify-between gap-1 text-sm">
+                    <span className="flex flex-wrap items-center gap-1 text-xs">
+                        Updated
+                        <time dateTime={new Date(note.lastUpdatedAt).toString()}>
+                            {formatDistance(Date.now(), note.lastUpdatedAt)}
+                        </time>
+                        ago
+                    </span>
                     <kbd
                         className={cn(
-                            'rounded border border-neutral-300 bg-neutral-200 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-800',
+                            'shrink-0 rounded border border-neutral-300 bg-neutral-200 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-800',
                             {
-                                'border-blue-400 bg-blue-600 dark:border-blue-500 dark:bg-blue-300':
+                                'border-blue-400 bg-blue-600 dark:border-blue-700 dark:bg-blue-300':
                                     selectedNote?.id === note.id
                             }
                         )}

@@ -52,18 +52,25 @@ export async function createNote(title?: string) {
 }
 
 export async function updateNote(noteId: number, content: JSONContent) {
-    const recordsUpdated = await db.notes.update(noteId, { content });
+    const [error, recordsUpdated] = await to(db.notes.update(noteId, { content, lastUpdatedAt: Date.now() }));
+
+    if (error) {
+        return {
+            code: 500,
+            error
+        } as const;
+    }
 
     if (recordsUpdated === 0) {
         return {
             code: 404,
             message: 'No note found with the given id'
         } as const;
-    } else {
-        return {
-            code: 200
-        } as const;
     }
+
+    return {
+        code: 200
+    } as const;
 }
 
 export async function getNotes() {
