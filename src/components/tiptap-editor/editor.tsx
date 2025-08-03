@@ -94,7 +94,7 @@ export function Editor({ isDarkMode, toggleDarkMode, note, handleUpdateNote }: E
     const isMobile = useIsMobile();
     const [mobileView, setMobileView] = useState<'main' | 'highlighter' | 'link'>('main');
     const toolbarRef = useRef<HTMLDivElement>(null);
-    const [editorState, setEditorState] = useState<Content>(note?.content || {});
+    const [editorState, setEditorState] = useState<Content>(note?.content || '');
 
     const editor = useEditor({
         immediatelyRender: false,

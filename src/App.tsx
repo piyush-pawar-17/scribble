@@ -16,6 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
     Editor,
+    Key,
     Logo,
     Popover,
     PopoverContent,
@@ -157,6 +158,20 @@ function App() {
         }
     );
 
+    useKeyboardShortcut(
+        'c',
+        () => {
+            toggleDarkMode();
+        },
+        {
+            ctrlKey: true,
+            metaKey: true,
+            shiftKey: false,
+            preventDefault: true,
+            preventInInput: false
+        }
+    );
+
     async function handleCreateNote(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
@@ -226,9 +241,11 @@ function App() {
                                 <p className="italic">No notes created yet</p>
                                 <p className="mt-2 py-1 text-sm">
                                     Click on <span className="text-base font-bold">New note</span> or type{' '}
-                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-800">
-                                        {isMac() ? 'Cmd' : 'Ctrl'} + Shift + O
-                                    </kbd>{' '}
+                                    <span className="space-x-1">
+                                        <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                                        <Key>Shift</Key>
+                                        <Key className="mr-1">O</Key>
+                                    </span>
                                     to create a new note
                                 </p>
                             </div>
@@ -245,9 +262,16 @@ function App() {
 
                 <Dialog open={isNewNoteDialogOpen} onOpenChange={setIsNewNoteDialogOpen}>
                     <DialogTrigger asChild>
-                        <div className="fixed bottom-0 left-0 bg-[var(--tt-bg-color)] p-4 sm:w-96">
-                            <Button className="flex w-full items-center justify-center gap-2">
-                                <Plus size={16} /> New note
+                        <div className="fixed bottom-0 left-0 bg-[var(--tt-bg-color)] px-4 py-6 sm:w-96 border-r border-neutral-300 dark:border-r-neutral-800">
+                            <Button className="flex w-full items-center justify-between gap-2 py-4">
+                                <span className="flex items-center gap-2">
+                                    <Plus size={16} /> New note
+                                </span>
+                                <span className="flex items-center gap-1 text-xs">
+                                    <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                                    <Key>Shift</Key>
+                                    <Key>O</Key>
+                                </span>
                             </Button>
                         </div>
                     </DialogTrigger>
@@ -341,9 +365,11 @@ function App() {
                         <p className="text-center italic">No notes created yet</p>
                         <p className="mt-2 py-1 text-center text-sm">
                             Click on <span className="text-base font-bold">New note</span> or type{' '}
-                            <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-800">
-                                {isMac() ? 'Cmd' : 'Ctrl'} + Shift + O
-                            </kbd>{' '}
+                            <span className="space-x-1">
+                                <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                                <Key>Shift</Key>
+                                <Key className="mr-1">O</Key>
+                            </span>{' '}
                             to create a new note
                         </p>
                     </div>
@@ -543,17 +569,24 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex, handleGetNot
                         ago
                     </span>
                     {noteIndex <= 9 && (
-                        <kbd
-                            className={cn(
-                                'shrink-0 rounded border border-neutral-300 bg-neutral-200 px-1.5 py-1 dark:border-neutral-700 dark:bg-neutral-800',
-                                {
+                        <span className="flex items-center gap-1 text-xs">
+                            <Key
+                                className={cn('shrink-0', {
                                     'border-blue-400 bg-blue-600 dark:border-blue-700 dark:bg-blue-300':
                                         selectedNote?.id === note.id
-                                }
-                            )}
-                        >
-                            {isMac() ? 'Cmd' : 'Ctrl'} + {noteIndex}
-                        </kbd>
+                                })}
+                            >
+                                {isMac() ? 'Cmd' : 'Ctrl'}
+                            </Key>
+                            <Key
+                                className={cn('shrink-0', {
+                                    'border-blue-400 bg-blue-600 dark:border-blue-700 dark:bg-blue-300':
+                                        selectedNote?.id === note.id
+                                })}
+                            >
+                                {noteIndex}
+                            </Key>
+                        </span>
                     )}
                 </span>
             </Button>
@@ -583,12 +616,8 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex, handleGetNot
                             </span>
                             {note.id === selectedNote?.id && (
                                 <span className="flex items-center gap-1">
-                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                        {isMac() ? 'Cmd' : 'Ctrl'}
-                                    </kbd>
-                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                        E
-                                    </kbd>
+                                    <Key className="py-0.5 text-xs">{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                                    <Key className="py-0.5 text-xs">E</Key>
                                 </span>
                             )}
                         </button>
@@ -605,12 +634,8 @@ function NoteCard({ note, selectedNote, setSelectedNote, noteIndex, handleGetNot
                             </span>
                             {note.id === selectedNote?.id && (
                                 <span className="flex items-center gap-1">
-                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                        {isMac() ? 'Cmd' : 'Ctrl'}
-                                    </kbd>
-                                    <kbd className="rounded border border-neutral-300 bg-neutral-200 px-1.5 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-                                        D
-                                    </kbd>
+                                    <Key className="py-0.5 text-xs">{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                                    <Key className="py-0.5 text-xs">D</Key>
                                 </span>
                             )}
                         </button>

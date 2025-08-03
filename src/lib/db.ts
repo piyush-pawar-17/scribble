@@ -28,7 +28,14 @@ export async function createNote(title?: string) {
     const noteTitle = title?.trim() || DEFAULT_NOTE_TITLE;
     const initialNote: Note = {
         title: noteTitle,
-        content: {},
+        content: {
+            type: 'doc',
+            content: [
+                {
+                    type: 'paragraph'
+                }
+            ]
+        },
         lastUpdatedAt: Date.now(),
         createdAt: Date.now()
     };

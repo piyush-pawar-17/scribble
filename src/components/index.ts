@@ -6,3 +6,4 @@ export * from './tiptap-ui-primitive';
 export * from './dialog';
 export * from './logo';
 export * from './ui-button';
+export * from './key';
