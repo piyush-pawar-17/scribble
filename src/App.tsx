@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { type JSONContent } from '@tiptap/react';
 import { format, formatDistance } from 'date-fns';
-import { Ellipsis, LoaderCircle, Pencil, Plus, RotateCcw, Trash } from 'lucide-react';
+import { Ellipsis, Keyboard, LoaderCircle, Pencil, Plus, RotateCcw, Trash } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import {
@@ -68,6 +68,7 @@ function App() {
     const [didCreateNoteFail, setDidCreateNoteFail] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+    const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
     const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -172,6 +173,20 @@ function App() {
         }
     );
 
+    useKeyboardShortcut(
+        'k',
+        () => {
+            setIsShortcutsOpen(true);
+        },
+        {
+            ctrlKey: true,
+            metaKey: true,
+            shiftKey: false,
+            preventDefault: true,
+            preventInInput: false
+        }
+    );
+
     async function handleCreateNote(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
@@ -262,7 +277,7 @@ function App() {
 
                 <Dialog open={isNewNoteDialogOpen} onOpenChange={setIsNewNoteDialogOpen}>
                     <DialogTrigger asChild>
-                        <div className="fixed bottom-0 left-0 bg-[var(--tt-bg-color)] px-4 py-6 sm:w-96 border-r border-neutral-300 dark:border-r-neutral-800">
+                        <div className="fixed bottom-0 left-0 border-r border-neutral-300 bg-[var(--tt-bg-color)] px-4 py-6 sm:w-96 dark:border-r-neutral-800">
                             <Button className="flex w-full items-center justify-between gap-2 py-4">
                                 <span className="flex items-center gap-2">
                                     <Plus size={16} /> New note
@@ -383,6 +398,74 @@ function App() {
                     />
                 )}
             </section>
+
+            <Dialog open={isShortcutsOpen} onOpenChange={setIsShortcutsOpen}>
+                <DialogTrigger asChild>
+                    <Button className="fixed right-4 bottom-4 flex items-center gap-3 px-3 py-2 text-xs">
+                        <span className="flex items-center gap-2">
+                            <Keyboard size={18} /> Shortcuts
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                            <Key>K</Key>
+                        </span>
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader className="mb-0">
+                        <DialogTitle>Shortcuts list</DialogTitle>
+                        <DialogDescription className="mt-2">List of shortcuts for quick actions</DialogDescription>
+                    </DialogHeader>
+                    <div className="mb-8 grid grid-cols-2 gap-2 text-sm">
+                        <p className="mb-2 font-semibold">Shortcut</p>
+                        <p className="mb-2 font-semibold">Action</p>
+
+                        <p className="flex items-center gap-1">
+                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                            <Key>Shift</Key>
+                            <Key>O</Key>
+                        </p>
+                        <p>Create a new note</p>
+
+
+                        <p className="flex items-center gap-1">
+                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                            <Key>1-9</Key>
+                        </p>
+                        <p>Open note 1-9</p>
+
+
+                        <p className="flex items-center gap-1">
+                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                            <Key>E</Key>
+                        </p>
+                        <p>Edit selected note's title</p>
+
+                        <p className="flex items-center gap-1">
+                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                            <Key>D</Key>
+                        </p>
+                        <p>Delete selected note</p>
+
+                        <p className="flex items-center gap-1">
+                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                            <Key>C</Key>
+                        </p>
+                        <p>Change theme</p>
+
+                        <p className="flex items-center gap-1">
+                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
+                            <Key>K</Key>
+                        </p>
+                        <p>Show shortcuts</p>
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                        <DialogClose asChild>
+                            <Button>Close</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     );
 }
