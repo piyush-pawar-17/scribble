@@ -135,6 +135,10 @@ export function Editor({ isDarkMode, toggleDarkMode, note, handleUpdateNote }: E
         ],
         content: editorState,
         onCreate: (props) => {
+            props.editor.view.dom.setAttribute('spellcheck', 'false');
+            props.editor.view.dom.setAttribute('autocomplete', 'off');
+            props.editor.view.dom.setAttribute('autocapitalize', 'off');
+
             props.editor.commands.focus('end');
         },
         onUpdate: (props) => {
