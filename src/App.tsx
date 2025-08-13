@@ -160,20 +160,6 @@ function App() {
     );
 
     useKeyboardShortcut(
-        'c',
-        () => {
-            toggleDarkMode();
-        },
-        {
-            ctrlKey: true,
-            metaKey: true,
-            shiftKey: false,
-            preventDefault: true,
-            preventInInput: false
-        }
-    );
-
-    useKeyboardShortcut(
         'k',
         () => {
             setIsShortcutsOpen(true);
@@ -446,12 +432,6 @@ function App() {
                             <Key>D</Key>
                         </p>
                         <p>Delete selected note</p>
-
-                        <p className="flex items-center gap-1">
-                            <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
-                            <Key>C</Key>
-                        </p>
-                        <p>Change theme</p>
 
                         <p className="flex items-center gap-1">
                             <Key>{isMac() ? 'Cmd' : 'Ctrl'}</Key>
